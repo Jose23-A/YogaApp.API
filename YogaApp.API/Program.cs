@@ -1,4 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using YogaApp.API;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<YogaDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 // Add services to the container.
 
