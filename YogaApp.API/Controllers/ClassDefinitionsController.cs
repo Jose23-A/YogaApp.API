@@ -8,9 +8,9 @@ namespace YogaApp.API.Controllers
     [ApiController]
     public class ClassDefinitionsController : ControllerBase
     {
-        private readonly YogaAppContext _context;
+        private readonly YogaDbContext _context;
 
-        public ClassDefinitionsController(YogaAppContext context)
+        public ClassDefinitionsController(YogaDbContext context)
         {
             _context = context;
         }

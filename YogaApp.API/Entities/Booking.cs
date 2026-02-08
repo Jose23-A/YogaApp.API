@@ -5,10 +5,10 @@
         public int Id { get; set; }
 
         public int ClassSessionId { get; set; }
-        public ClassSession? ClassSession { get; set; }
+        public virtual ClassSession? ClassSession { get; set; }
 
         public int StudentId { get; set; }
-        public Student? Student { get; set; }
+        public virtual Student? Student { get; set; }
 
         public DateTime FechaReserva { get; set; }
 
