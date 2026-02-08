@@ -1,0 +1,51 @@
+﻿@page "/clases"
+@using YogaApp.API.Entities
+@inject HttpClient Http
+
+<PageTitle>Nuestras Clases</PageTitle>
+
+<h1 class="mb-4">Próximas Clases de Yoga</h1>
+
+@if (clases == null)
+{
+    <p><em>Cargando datos desde la API...</em></p>
+}
+else
+{
+    <table class="table table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Cupo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in clases)
+            {
+                <tr>
+                    <td>@c.Id</td>
+                    <td>@c.FechaHoraInicio.ToShortDateString()</td>
+                    <td>@c.FechaHoraInicio.ToShortTimeString()</td>
+                    <td>@c.CupoMaximo</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm">Ver Detalles</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ClassSession>? clases;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Esta es la llamada real entre capas
+        // La Web (Presentación) le pide a la API (Lógica) los datos
+        clases = await Http.GetFromJsonAsync<List<ClassSession>>("api/ClassSessions");
+    }
+}
