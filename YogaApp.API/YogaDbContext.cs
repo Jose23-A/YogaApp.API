@@ -18,5 +18,7 @@ namespace YogaApp.API
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<UserSubscription> Subscriptions { get; set; }
+
+        public DbSet<User> Users { get; set; }
     }
 }

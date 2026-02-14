@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YogaApp.API;
 
@@ -11,9 +12,11 @@ using YogaApp.API;
 namespace YogaApp.API.Migrations
 {
     [DbContext(typeof(YogaDbContext))]
-    partial class YogaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260209010041_CrearTablaUsuarios")]
+    partial class CrearTablaUsuarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
