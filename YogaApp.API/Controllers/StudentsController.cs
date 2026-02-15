@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using YogaApp.API.DTOs;
 using YogaApp.API.Entities;
+using YogaApp.API.Services;
 
 namespace YogaApp.API.Controllers
 {
@@ -8,46 +9,35 @@ namespace YogaApp.API.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly YogaDbContext _context;
+        // Ya no dependemos de SQL, dependemos del Servicio (Reglas de Negocio)
+        private readonly IAlumnoService _alumnoService;
 
-        public StudentsController(YogaDbContext context)
+        public StudentsController(IAlumnoService alumnoService)
         {
-            _context = context;
+            _alumnoService = alumnoService;
         }
 
         // GET: api/Students
-        // Ver la lista de todos los alumnos
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            // Busca en la tabla Students y devuelve la lista completa
-            return await _context.Students.ToListAsync();
-        }
-
-        // GET: api/Students/5
-        // Buscar un alumno específico por su ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
-        {
-            var student = await _context.Students.FindAsync(id);
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(student);
+            // El controlador solo dice: "Servicio, dame los datos" y los entrega.
+            var alumnos = await _alumnoService.ObtenerTodosAsync();
+            return Ok(alumnos);
         }
 
         // POST: api/Students
-        // Crear un nuevo alumno (Darse de alta)
         [HttpPost]
-        public async Task<ActionResult<Student>> CreateStudent(Student student)
+        public async Task<ActionResult<Student>> CreateStudent(CreateStudentDto input)
         {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
+            // El controlador delega toda la lógica de creación al servicio.
+            var alumnoCreado = await _alumnoService.CrearAlumnoAsync(input);
 
-            return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student);
+            // Retornamos 201 Created
+            return CreatedAtAction(nameof(GetStudents), new { id = alumnoCreado.Id }, alumnoCreado);
         }
+
+        // (Nota: He quitado temporalmente el GetStudent(id) individual para que no te de error 
+        // hasta que lo agreguemos al servicio, pero con estos dos ya puedes probar).
     }
 }

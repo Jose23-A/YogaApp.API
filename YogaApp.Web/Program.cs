@@ -9,6 +9,10 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri("https://localhost:7032")
 });
 
+// 3. REGISTRO DE NUESTRO SERVICIO ("El Mensajero")
+// Le decimos a la Web: "Cuando alguien pida AlumnoService, usa la clase que creamos en Web/Services"
+builder.Services.AddScoped<YogaApp.Web.Services.AlumnoService>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
