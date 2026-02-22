@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped(sp => new HttpClient
 {
     // Reemplaza el número 7193 por el puerto que anotaste del launchSettings de tu API
-    BaseAddress = new Uri("https://localhost:7032")
+    BaseAddress = new Uri("https://localhost:7032/")
 });
 
 // 3. REGISTRO DE NUESTRO SERVICIO ("El Mensajero")

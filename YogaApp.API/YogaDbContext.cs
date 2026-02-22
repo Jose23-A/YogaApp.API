@@ -14,6 +14,7 @@ namespace YogaApp.API
 
         // Aquí declaras qué clases se convierten en tablas
         public DbSet<Student> Students { get; set; }
+        public DbSet<YogaClass> Classes { get; set; }
         public DbSet<ClassDefinition> ClassDefinitions { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<Booking> Bookings { get; set; }

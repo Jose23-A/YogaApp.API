@@ -1,0 +1,109 @@
+﻿@page "/calendario"
+@using YogaApp.Web.DTOs
+@inject HttpClient Http
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">📅 Calendario Semanal</h2>
+
+    @if (sesiones == null)
+    {
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered text-center shadow">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Horario</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int hora = 8; hora <= 20; hora++)
+                    {
+                        <tr>
+                            <td class="align-middle fw-bold bg-light">@hora:00</td>
+
+                            @for (int dia = 1; dia <= 6; dia++)
+                            {
+                                <td>
+                                    @{
+                                        var claseEncontrada = ObtenerClase(dia, hora);
+                                    }
+
+                                    @if (claseEncontrada != null)
+                                    {
+                                        <div class="card border-0 shadow-sm text-white"
+                                             style="background-color: #6f42c1; cursor: pointer;"
+                                             @onclick="() => SeleccionarClase(claseEncontrada)">
+
+                                            <div class="card-body p-2">
+                                                <h6 class="card-title m-0" style="font-size: 0.9rem;">
+                                                    @claseEncontrada.ClassDefinition?.Nombre
+                                                </h6>
+                                                <small>Cupo: @claseEncontrada.CupoMaximo</small>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (claseSeleccionada != null)
+{
+    <div class="alert alert-info mt-3">
+        Has seleccionado: <strong>@claseSeleccionada.ClassDefinition?.Nombre</strong>
+        a las @claseSeleccionada.FechaHoraInicio.ToShortTimeString()
+        <br />
+        <button class="btn btn-success mt-2">Confirmar Inscripción</button>
+        <button class="btn btn-secondary mt-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
+    </div>
+}
+
+@code {
+    private List<ClassSessionDto>? sesiones;
+    private ClassSessionDto? claseSeleccionada;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Llamamos a tu controlador ClassSessionsController
+            sesiones = await Http.GetFromJsonAsync<List<ClassSessionDto>>("api/ClassSessions");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar calendario: {ex.Message}");
+        }
+    }
+
+    // Lógica para encontrar la clase en la celda correcta
+    private ClassSessionDto? ObtenerClase(int diaSemana, int hora)
+    {
+        if (sesiones == null) return null;
+
+        // LINQ: Buscamos una clase que coincida en Día de la semana y Hora
+        return sesiones.FirstOrDefault(c =>
+            (int)c.FechaHoraInicio.DayOfWeek == diaSemana &&
+            c.FechaHoraInicio.Hour == hora);
+    }
+
+    private void SeleccionarClase(ClassSessionDto clase)
+    {
+        claseSeleccionada = clase;
+    }
+}

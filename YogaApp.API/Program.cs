@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using YogaApp.API;
+using YogaApp.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,8 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IAlumnoService, AlumnoService>();
 
 var app = builder.Build();
 

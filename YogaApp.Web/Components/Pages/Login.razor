@@ -1,0 +1,68 @@
+﻿@page "/login"
+@using YogaApp.API.Controllers
+@using YogaApp.Web.DTOs
+@using YogaApp.Web.Services
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+    <div class="card shadow p-4" style="width: 350px;">
+        <h3 class="text-center text-primary mb-3">Iniciar Sesión</h3>
+
+        @if (!string.IsNullOrEmpty(mensajeError))
+        {
+            <div class="alert alert-danger">@mensajeError</div>
+        }
+
+        <EditForm Model="loginModel" OnValidSubmit="IniciarSesion">
+            <div class="mb-3">
+                <label>Email</label>
+                <InputText @bind-Value="loginModel.Email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>Contraseña</label>
+                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </EditForm>
+
+        <div class="mt-3 text-center">
+            <small>¿No tienes cuenta? <a href="/registro">Regístrate (Próximamente)</a></small>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Usamos la misma clase que definiste en tu AuthController
+    private UserDto loginModel = new UserDto();
+    private string mensajeError = "";
+
+    private async Task IniciarSesion()
+    {
+        try
+        {
+            // Llamamos a tu nuevo endpoint LOGIN
+            var respuesta = await Http.PostAsJsonAsync("api/Auth/login", loginModel);
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                // La API nos devuelve los datos del STUDENT (incluyendo el ID)
+                var alumno = await respuesta.Content.ReadFromJsonAsync<StudentDto>();
+
+                // Guardamos en memoria
+                UserState.Login(alumno);
+
+                // Vamos al calendario
+                NavManager.NavigateTo("/");
+            }
+            else
+            {
+                mensajeError = "Usuario o contraseña incorrectos.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = "Error de conexión: " + ex.Message;
+        }
+    }
+}

@@ -13,14 +13,11 @@ namespace YogaApp.Web.Services
             _http = http;
         }
 
-        public async Task<bool> CrearAlumnoAsync(CreateStudentDto alumno)
+        // Cambiamos el nombre para la prueba y que devuelva HttpResponseMessage
+        public async Task<HttpResponseMessage> CrearAlumnoAsyncWithResponse(CreateStudentDto alumno)
         {
-            // ENVÍO (POST):
-            // "Oye API, toma este alumno y guárdalo en /api/students"
-            var respuesta = await _http.PostAsJsonAsync("api/students", alumno);
-
-            // Si la API responde 201 Created, devolvemos true.
-            return respuesta.IsSuccessStatusCode;
+            // Asegúrate de que "api/Students" coincida con lo que viste en Swagger
+            return await _http.PostAsJsonAsync("api/Students", alumno);
         }
     }
 }

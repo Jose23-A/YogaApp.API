@@ -2,65 +2,230 @@
 @rendermode InteractiveServer
 @using YogaApp.Web.DTOs
 @using YogaApp.Web.Services
-@inject AlumnoService AlumnoService
+@inject HttpClient Http
+@inject NavigationManager NavManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>YogaApp - Inicio</PageTitle>
 
-<h1>Bienvenido al Sistema de Yoga</h1>
+<style>
+    .hero-section {
+        background-image: url('https://picsum.photos/id/106/1920/1080');
+        background-size: cover;
+        background-position: center;
+        height: 70vh;
+        width: 100%;
+        margin-top: -1.5rem;
+    }
 
-<div class="card p-4" style="max-width: 500px;">
-    <h3>Alta Rápida de Alumno</h3>
+    .zoom-effect {
+        transition: transform 0.2s;
+    }
 
-    <EditForm Model="@nuevoAlumno" OnValidSubmit="GuardarAlumno">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="mb-3">
-            <label>Nombre:</label>
-            <InputText @bind-Value="nuevoAlumno.Nombre" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label>Email:</label>
-            <InputText @bind-Value="nuevoAlumno.Email" class="form-control" />
-        </div>
-
-        @if (!string.IsNullOrEmpty(mensaje))
-        {
-            <div class="alert alert-info mt-2">@mensaje</div>
+        .zoom-effect:hover {
+            transform: scale(1.05);
+            background-color: #5a32a3 !important;
         }
+</style>
 
-        <button type="submit" class="btn btn-primary mt-3">Guardar Alumno</button>
-    </EditForm>
+<div class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+    <div class="content-box p-5" style="background-color: rgba(0,0,0, 0.5); border-radius: 15px;">
+        <h1 class="display-3 fw-bold">Encuentra tu equilibrio</h1>
+        <p class="lead">Reserva tus clases de Yoga online y transforma tu vida.</p>
+        <a href="#calendario" class="btn btn-warning btn-lg mt-3 fw-bold">📅 Ver Horarios</a>
+    </div>
 </div>
 
-@code {
-    // Variables (Hoja D)
-    private CreateStudentDto nuevoAlumno = new CreateStudentDto();
-    private string mensaje = "";
+<div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <img src="https://picsum.photos/id/65/300/200" class="rounded-circle mb-3 shadow" alt="Hatha" />
+            <h3 class="fw-bold">Hatha Yoga</h3>
+            <p class="text-muted">Posturas suaves para alinear tu cuerpo y calmar tu mente.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <img src="https://picsum.photos/id/64/300/200" class="rounded-circle mb-3 shadow" alt="Vinyasa" />
+            <h3 class="fw-bold">Vinyasa Flow</h3>
+            <p class="text-muted">Clases dinámicas donde el movimiento fluye con la respiración.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <img src="https://picsum.photos/id/91/300/200" class="rounded-circle mb-3 shadow" alt="Meditación" />
+            <h3 class="fw-bold">Meditación</h3>
+            <p class="text-muted">Espacios de introspección para reducir el estrés diario.</p>
+        </div>
+    </div>
+</div>
 
-    // Lógica (Hoja C)
-    private async Task GuardarAlumno()
+<hr class="my-5" />
+
+<div id="calendario" class="container mb-5">
+    <h2 class="text-center mb-4 text-primary fw-bold">📅 Reserva tu Clase Semanal</h2>
+
+    @if (sesiones == null)
     {
-        mensaje = "Procesando...";
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Cargando agenda de clases...</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered text-center shadow">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th style="width: 100px;">Horario</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int hora = 8; hora <= 20; hora++)
+                    {
+                        <tr>
+                            <td class="align-middle fw-bold bg-light">@hora:00</td>
+                            @for (int dia = 1; dia <= 6; dia++)
+                            {
+                                <td>
+                                    @{
+                                        var clase = ObtenerClase(dia, hora);
+                                    }
 
+                                    @if (clase != null)
+                                    {
+                                        <div class="card border-0 text-white shadow-sm zoom-effect"
+                                             style="background-color: #6f42c1; cursor: pointer;"
+                                             @onclick="() => SeleccionarClase(clase)">
+                                            <div class="card-body p-1">
+                                                <strong style="font-size: 0.9rem;">@clase.ClassDefinition?.Nombre</strong>
+                                                <br />
+                                                <span class="badge bg-white text-dark mt-1">@clase.CupoMaximo lugares</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (claseSeleccionada != null)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Confirmar Reserva</h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => claseSeleccionada = null"></button>
+                </div>
+
+                <div class="modal-body text-center">
+                    <h4 class="fw-bold">@claseSeleccionada.ClassDefinition?.Nombre</h4>
+                    <p class="fs-5 text-muted">@claseSeleccionada.FechaHoraInicio.ToString("dd/MM/yyyy")</p>
+                    <p class="fs-4 fw-bold text-primary">⏰ @claseSeleccionada.FechaHoraInicio.ToString("HH:mm") hs</p>
+
+                    @if (!string.IsNullOrEmpty(mensajeResultado))
+                    {
+                        <div class="alert alert-info mt-2">@mensajeResultado</div>
+                    }
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    @if (UserState.EstaLogueado)
+                    {
+                        <button class="btn btn-secondary" @onclick="() => claseSeleccionada = null">Cancelar</button>
+                        <button class="btn btn-success px-4 fw-bold" @onclick="InscribirseEnClase">✅ ¡Confirmar Inscripción!</button>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column align-items-center w-100">
+                            <p class="text-danger mb-2">Debes iniciar sesión para reservar.</p>
+                            <button class="btn btn-warning w-100 fw-bold" @onclick="IrALogin">👤 Iniciar Sesión</button>
+                            <button class="btn btn-link text-secondary mt-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // --- LÓGICA DE C# (Ahora sí funcionará porque el HTML está limpio) ---
+
+    private List<ClassSessionDto>? sesiones;
+    private ClassSessionDto? claseSeleccionada;
+    private string mensajeResultado = "";
+
+    protected override async Task OnInitializedAsync()
+    {
         try
         {
-            var exito = await AlumnoService.CrearAlumnoAsync(nuevoAlumno);
-
-            if (exito)
-            {
-                mensaje = "✅ ¡Alumno guardado correctamente!";
-                nuevoAlumno = new CreateStudentDto(); // Limpiar pantalla
-            }
-            else
-            {
-                mensaje = "❌ Error: La API no pudo guardar.";
-            }
+            sesiones = await Http.GetFromJsonAsync<List<ClassSessionDto>>("api/ClassSessions");
         }
         catch (Exception ex)
         {
-            mensaje = $"❌ Error Técnico: {ex.Message}";
+            Console.WriteLine($"Error conectando API: {ex.Message}");
+        }
+    }
+
+    private ClassSessionDto? ObtenerClase(int diaSemana, int hora)
+    {
+        if (sesiones == null) return null;
+        return sesiones.FirstOrDefault(c =>
+            (int)c.FechaHoraInicio.DayOfWeek == diaSemana &&
+            c.FechaHoraInicio.Hour == hora);
+    }
+
+    private void SeleccionarClase(ClassSessionDto clase)
+    {
+        claseSeleccionada = clase;
+        mensajeResultado = "";
+    }
+
+    private void IrALogin()
+    {
+        NavManager.NavigateTo("/login");
+    }
+
+    private async Task InscribirseEnClase()
+    {
+        if (claseSeleccionada == null || !UserState.EstaLogueado) return;
+
+        mensajeResultado = "⏳ Procesando...";
+
+        var solicitud = new
+        {
+            StudentId = UserState.AlumnoLogueado!.Id,
+            ClassSessionId = claseSeleccionada.Id
+        };
+
+        try
+        {
+            var respuesta = await Http.PostAsJsonAsync("api/Inscriptions", solicitud);
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                mensajeResultado = "🎉 ¡Inscripción exitosa!";
+                await Task.Delay(2000);
+                claseSeleccionada = null;
+            }
+            else
+            {
+                mensajeResultado = "❌ " + await respuesta.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception)
+        {
+            mensajeResultado = "❌ Error de conexión.";
         }
     }
 }
