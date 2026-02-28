@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using YogaApp.API;
 using YogaApp.API.Services;
 
@@ -21,6 +22,25 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
+
+// Registrar el nuevo servicio
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Configurar la autenticación JWT para que la API entienda los tokens
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
