@@ -1,231 +1,174 @@
 ﻿@page "/"
-@rendermode InteractiveServer
-@using YogaApp.Web.DTOs
-@using YogaApp.Web.Services
-@inject HttpClient Http
-@inject NavigationManager NavManager
+<PageTitle>YogaApp - Tu espacio de paz</PageTitle>
 
-<PageTitle>YogaApp - Inicio</PageTitle>
+@* ==========================================
+   SECCIÓN 1: HERO (Portada Gigante)
+========================================== *@
+<div class="hero-section d-flex flex-column justify-center align-center">
+    <MudText Typo="Typo.h1" Color="Color.Surface" Class="mb-4 text-center font-weight-bold" Style="color: #FFFFFF; text-shadow: 2px 2px 8px rgba(0,0,0,0.7);">
+        Encuentra Tu Equilibrio
+    </MudText>
+    <MudText Typo="Typo.h5" Class="mb-8 text-center px-4" Style="color: #FFFFFF; max-width: 800px; text-shadow: 1px 1px 4px rgba(0,0,0,0.9);">
+        Conéctate con tu cuerpo y mente en un entorno diseñado para tu bienestar.
+    </MudText>
+    <MudButton Variant="Variant.Filled" Size="Size.Large" Color="Color.Primary" Class="rounded-pill px-10 py-3 font-weight-bold text-h6" OnClick="ScrollToCalendario">
+        VER HORARIOS
+    </MudButton>
+</div>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-16">
+    @* ==========================================
+       SECCIÓN 2: HISTORIA (Fotos Intercaladas)
+    ========================================== *@
+
+    @* Bloque 1: Imagen Izquierda, Texto Derecha *@
+    <MudGrid Class="mb-16" Spacing="6" AlignItems="AlignItems.Center">
+        <MudItem xs="12" md="6">
+            <MudImage Src="https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=800&auto=format&fit=crop" Alt="Meditación" Elevation="4" Class="rounded-lg" Width="100" Style="width: 100%; height: 350px; object-fit: cover;" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold mb-4">Conecta con tu interior</MudText>
+            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem; line-height: 1.8;">
+                Nuestras clases de meditación guiada están diseñadas para ayudarte a soltar el estrés de la rutina diaria.
+                Aprende a respirar, a estar en el momento presente y a encontrar esa calma que tanto necesitas después de un largo día de trabajo.
+            </MudText>
+        </MudItem>
+    </MudGrid>
+
+    @* Bloque 2: Texto Izquierda, Imagen Derecha (Corregido y con nueva foto) *@
+    <MudGrid Class="mb-16" Spacing="6" AlignItems="AlignItems.Center">
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold mb-4">Fuerza y Flexibilidad</MudText>
+            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem; line-height: 1.8;">
+                A través del Vinyasa Yoga, logramos unir el movimiento con la respiración.
+                Fortalece tus músculos, mejora tu postura y gana una flexibilidad que transformará tu calidad de vida, sin importar tu nivel de experiencia.
+            </MudText>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudImage Src="https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?q=80&w=800&auto=format&fit=crop" Alt="Vinyasa Yoga" Elevation="4" Class="rounded-lg" Style="width: 100%; height: 350px; object-fit: cover;" />
+        </MudItem>
+    </MudGrid>
+
+    @* Bloque 3: Imagen Izquierda, Texto Derecha *@
+    <MudGrid Class="mb-16" Spacing="6" AlignItems="AlignItems.Center">
+        <MudItem xs="12" md="6">
+            <MudImage Src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop" Alt="Bienestar" Elevation="4" Class="rounded-lg" Width="100" Style="width: 100%; height: 350px; object-fit: cover;" />
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.h3" Color="Color.Primary" Class="font-weight-bold mb-4">Comunidad y Bienestar</MudText>
+            <MudText Typo="Typo.body1" Class="text-muted" Style="font-size: 1.1rem; line-height: 1.8;">
+                No somos solo un estudio, somos una comunidad. Disfruta de un ambiente cálido, libre de juicios,
+                donde cada práctica es un paso más hacia tu mejor versión. Te acompañamos en cada asana.
+            </MudText>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-16" />
+
+    @* ==========================================
+       SECCIÓN 3: CALENDARIO PREMIUM (Tarjetas)
+    ========================================== *@
+    <div id="seccion-calendario" class="pt-8 mb-16">
+        <MudText Typo="Typo.h2" Color="Color.Primary" Align="Align.Center" Class="font-weight-bold mb-2">Próximas Clases</MudText>
+        <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-10 text-muted">Reserva tu lugar hoy mismo</MudText>
+
+        <MudGrid Justify="Justify.Center">
+            @* Tarjeta de Clase 1 (Diseño de prueba) *@
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="3" Class="rounded-xl hover-efecto">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-weight-bold">Hatha Yoga</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">Prof. Laura Gómez</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudChip T="string" Color="Color.Secondary" Size="Size.Small">Principiantes</MudChip>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <div class="d-flex align-center mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Primary" Size="Size.Small" Class="mr-2" />
+                            <MudText Typo="Typo.body2">Lunes 14 de Marzo</MudText>
+                        </div>
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Primary" Size="Size.Small" Class="mr-2" />
+                            <MudText Typo="Typo.body2">18:00 - 19:15 hs</MudText>
+                        </div>
+                    </MudCardContent>
+                    <MudCardActions Class="d-flex justify-center pb-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="rounded-pill px-8">Reservar Lugar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            @* Tarjeta de Clase 2 *@
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="3" Class="rounded-xl hover-efecto">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6" Color="Color.Primary" Class="font-weight-bold">Vinyasa Flow</MudText>
+                            <MudText Typo="Typo.body2" Class="text-muted">Prof. Marcos Díaz</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">Avanzado</MudChip>
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <div class="d-flex align-center mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Event" Color="Color.Primary" Size="Size.Small" Class="mr-2" />
+                            <MudText Typo="Typo.body2">Lunes 14 de Marzo</MudText>
+                        </div>
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Primary" Size="Size.Small" Class="mr-2" />
+                            <MudText Typo="Typo.body2">19:30 - 20:45 hs</MudText>
+                        </div>
+                    </MudCardContent>
+                    <MudCardActions Class="d-flex justify-center pb-4">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="rounded-pill px-8">Reservar Lugar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </div>
+</MudContainer>
 
 <style>
+    /* El fondo con la imagen premium */
     .hero-section {
-        background-image: url('https://picsum.photos/id/106/1920/1080');
+        background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1920&auto=format&fit=crop');
         background-size: cover;
         background-position: center;
-        height: 70vh;
-        width: 100%;
-        margin-top: -1.5rem;
+        height: 85vh;
+        border-radius: 0 0 48px 48px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
     }
 
-    .zoom-effect {
-        transition: transform 0.2s;
+    /* Magia para que el bloque 2 se de vuelta en celulares */
+    @@media (min-width: 960px) {
+
+        .texto-derecha {
+            padding-left: 3rem !important;
+        }
     }
 
-        .zoom-effect:hover {
-            transform: scale(1.05);
-            background-color: #5a32a3 !important;
+    /* Efecto elegante al pasar el mouse por las tarjetas de clases */
+    .hover-efecto {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .hover-efecto:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(92, 131, 116, 0.2) !important; /* Usa el tono verde salvia */
         }
 </style>
 
-<div class="hero-section text-center text-white d-flex align-items-center justify-content-center">
-    <div class="content-box p-5" style="background-color: rgba(0,0,0, 0.5); border-radius: 15px;">
-        <h1 class="display-3 fw-bold">Encuentra tu equilibrio</h1>
-        <p class="lead">Reserva tus clases de Yoga online y transforma tu vida.</p>
-        <a href="#calendario" class="btn btn-warning btn-lg mt-3 fw-bold">📅 Ver Horarios</a>
-    </div>
-</div>
-
-<div class="container my-5">
-    <div class="row text-center">
-        <div class="col-md-4 mb-4">
-            <img src="https://picsum.photos/id/65/300/200" class="rounded-circle mb-3 shadow" alt="Hatha" />
-            <h3 class="fw-bold">Hatha Yoga</h3>
-            <p class="text-muted">Posturas suaves para alinear tu cuerpo y calmar tu mente.</p>
-        </div>
-        <div class="col-md-4 mb-4">
-            <img src="https://picsum.photos/id/64/300/200" class="rounded-circle mb-3 shadow" alt="Vinyasa" />
-            <h3 class="fw-bold">Vinyasa Flow</h3>
-            <p class="text-muted">Clases dinámicas donde el movimiento fluye con la respiración.</p>
-        </div>
-        <div class="col-md-4 mb-4">
-            <img src="https://picsum.photos/id/91/300/200" class="rounded-circle mb-3 shadow" alt="Meditación" />
-            <h3 class="fw-bold">Meditación</h3>
-            <p class="text-muted">Espacios de introspección para reducir el estrés diario.</p>
-        </div>
-    </div>
-</div>
-
-<hr class="my-5" />
-
-<div id="calendario" class="container mb-5">
-    <h2 class="text-center mb-4 text-primary fw-bold">📅 Reserva tu Clase Semanal</h2>
-
-    @if (sesiones == null)
-    {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">Cargando agenda de clases...</p>
-        </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-bordered text-center shadow">
-                <thead class="bg-dark text-white">
-                    <tr>
-                        <th style="width: 100px;">Horario</th>
-                        <th>Lunes</th>
-                        <th>Martes</th>
-                        <th>Miércoles</th>
-                        <th>Jueves</th>
-                        <th>Viernes</th>
-                        <th>Sábado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int hora = 8; hora <= 20; hora++)
-                    {
-                        <tr>
-                            <td class="align-middle fw-bold bg-light">@hora:00</td>
-                            @for (int dia = 1; dia <= 6; dia++)
-                            {
-                                <td>
-                                    @{
-                                        var clase = ObtenerClase(dia, hora);
-                                    }
-
-                                    @if (clase != null)
-                                    {
-                                        <div class="card border-0 text-white shadow-sm zoom-effect"
-                                             style="background-color: #6f42c1; cursor: pointer;"
-                                             @onclick="() => SeleccionarClase(clase)">
-                                            <div class="card-body p-1">
-                                                <strong style="font-size: 0.9rem;">@clase.ClassDefinition?.Nombre</strong>
-                                                <br />
-                                                <span class="badge bg-white text-dark mt-1">@clase.CupoMaximo lugares</span>
-                                            </div>
-                                        </div>
-                                    }
-                                </td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-</div>
-
-@if (claseSeleccionada != null)
-{
-    <div class="modal-backdrop fade show"></div>
-    <div class="modal fade show d-block" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Confirmar Reserva</h5>
-                    <button type="button" class="btn-close btn-close-white" @onclick="() => claseSeleccionada = null"></button>
-                </div>
-
-                <div class="modal-body text-center">
-                    <h4 class="fw-bold">@claseSeleccionada.ClassDefinition?.Nombre</h4>
-                    <p class="fs-5 text-muted">@claseSeleccionada.FechaHoraInicio.ToString("dd/MM/yyyy")</p>
-                    <p class="fs-4 fw-bold text-primary">⏰ @claseSeleccionada.FechaHoraInicio.ToString("HH:mm") hs</p>
-
-                    @if (!string.IsNullOrEmpty(mensajeResultado))
-                    {
-                        <div class="alert alert-info mt-2">@mensajeResultado</div>
-                    }
-                </div>
-
-                <div class="modal-footer justify-content-center">
-                    @if (UserState.EstaLogueado)
-                    {
-                        <button class="btn btn-secondary" @onclick="() => claseSeleccionada = null">Cancelar</button>
-                        <button class="btn btn-success px-4 fw-bold" @onclick="InscribirseEnClase">✅ ¡Confirmar Inscripción!</button>
-                    }
-                    else
-                    {
-                        <div class="d-flex flex-column align-items-center w-100">
-                            <p class="text-danger mb-2">Debes iniciar sesión para reservar.</p>
-                            <button class="btn btn-warning w-100 fw-bold" @onclick="IrALogin">👤 Iniciar Sesión</button>
-                            <button class="btn btn-link text-secondary mt-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
 @code {
-    // --- LÓGICA DE C# (Ahora sí funcionará porque el HTML está limpio) ---
+    // Función para que el botón del Hero baje suavemente hasta el calendario
+    [Inject] IJSRuntime JSRuntime { get; set; }
 
-    private List<ClassSessionDto>? sesiones;
-    private ClassSessionDto? claseSeleccionada;
-    private string mensajeResultado = "";
-
-    protected override async Task OnInitializedAsync()
+    private async Task ScrollToCalendario()
     {
-        try
-        {
-            sesiones = await Http.GetFromJsonAsync<List<ClassSessionDto>>("api/ClassSessions");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error conectando API: {ex.Message}");
-        }
-    }
-
-    private ClassSessionDto? ObtenerClase(int diaSemana, int hora)
-    {
-        if (sesiones == null) return null;
-        return sesiones.FirstOrDefault(c =>
-            (int)c.FechaHoraInicio.DayOfWeek == diaSemana &&
-            c.FechaHoraInicio.Hour == hora);
-    }
-
-    private void SeleccionarClase(ClassSessionDto clase)
-    {
-        claseSeleccionada = clase;
-        mensajeResultado = "";
-    }
-
-    private void IrALogin()
-    {
-        NavManager.NavigateTo("/login");
-    }
-
-    private async Task InscribirseEnClase()
-    {
-        if (claseSeleccionada == null || !UserState.EstaLogueado) return;
-
-        mensajeResultado = "⏳ Procesando...";
-
-        var solicitud = new
-        {
-            StudentId = UserState.AlumnoLogueado!.Id,
-            ClassSessionId = claseSeleccionada.Id
-        };
-
-        try
-        {
-            var respuesta = await Http.PostAsJsonAsync("api/Inscriptions", solicitud);
-
-            if (respuesta.IsSuccessStatusCode)
-            {
-                mensajeResultado = "🎉 ¡Inscripción exitosa!";
-                await Task.Delay(2000);
-                claseSeleccionada = null;
-            }
-            else
-            {
-                mensajeResultado = "❌ " + await respuesta.Content.ReadAsStringAsync();
-            }
-        }
-        catch (Exception)
-        {
-            mensajeResultado = "❌ Error de conexión.";
-        }
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('seccion-calendario').scrollIntoView({behavior: 'smooth'})");
     }
 }

@@ -1,9 +1,44 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<MudThemeProvider Theme="@TemaYoga"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudIcon Icon="@Icons.Material.Filled.SelfImprovement" Size="Size.Large" Class="mr-2" />
+        <MudText Typo="Typo.h5" Class="font-weight-bold">YogaApp</MudText>
+        <MudSpacer />
+        <MudButton Href="/" Color="Color.Inherit" Class="mr-2">Inicio</MudButton>
+        <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Inherit" Class="rounded-pill border-solid border-2">
+            Iniciar Sesión
+        </MudButton>
+    </MudAppBar>
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
+    Ha ocurrido un error inesperado.
+    <a href="" class="reload">Recargar</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    // Paleta de colores "Lavanda Zen" (Violetas y Lilas)
+    MudTheme TemaYoga = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#7E57C2",   /* Un violeta profundo y espiritual */
+            Secondary = "#B39DDB", /* Un lila/lavanda más suave para detalles */
+            AppbarBackground = "#7E57C2", /* El color de la barra superior */
+            Background = "#F6F4F9", /* Un blanco con una gotita de lila para relajar la vista */
+            Surface = "#FFFFFF",    /* Blanco puro para las tarjetas */
+            TextPrimary = "#322A40", /* Un gris muy oscuro casi violeta para el texto (no cansa la vista) */
+            PrimaryContrastText = "#FFFFFF" /* Texto blanco sobre los botones violetas */
+        }
+    };
+}

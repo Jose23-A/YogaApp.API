@@ -1,3 +1,5 @@
+using Blazored.LocalStorage;
+using MudBlazor.Services;
 using YogaApp.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,10 @@ builder.Services.AddScoped<YogaApp.Web.Services.AlumnoService>();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddHttpClient(); // Esto le enseña a Blazor a hacer peticiones web
 
 var app = builder.Build();
 

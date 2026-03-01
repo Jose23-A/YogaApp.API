@@ -1,68 +1,74 @@
 ﻿@page "/login"
-@using YogaApp.API.Controllers
-@using YogaApp.Web.DTOs
-@using YogaApp.Web.Services
+@rendermode InteractiveServer
+@using Blazored.LocalStorage
 @inject HttpClient Http
-@inject NavigationManager NavManager
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="card shadow p-4" style="width: 350px;">
-        <h3 class="text-center text-primary mb-3">Iniciar Sesión</h3>
+<PageTitle>Iniciar Sesión - YogaApp</PageTitle>
 
-        @if (!string.IsNullOrEmpty(mensajeError))
-        {
-            <div class="alert alert-danger">@mensajeError</div>
-        }
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height: 80vh;">
+    <MudCard Elevation="4" Class="pa-8 rounded-xl" Style="width: 100%; max-width: 450px;">
+        <MudCardHeader Class="d-flex justify-center pb-0">
+            <MudIcon Icon="@Icons.Material.Filled.SelfImprovement" Color="Color.Primary" Size="Size.Large" Class="mb-2" />
+        </MudCardHeader>
+        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary" Class="font-weight-bold mb-6">¡Bienvenido!</MudText>
 
-        <EditForm Model="loginModel" OnValidSubmit="IniciarSesion">
-            <div class="mb-3">
-                <label>Email</label>
-                <InputText @bind-Value="loginModel.Email" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label>Contraseña</label>
-                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-        </EditForm>
+        <MudCardContent>
+            <MudTextField @bind-Value="loginModel.Email" Label="Correo Electrónico" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" InputType="InputType.Email" />
+            <MudTextField @bind-Value="loginModel.Password" Label="Contraseña" Variant="Variant.Outlined" Margin="Margin.Dense" InputType="InputType.Password" Class="mb-6" />
 
-        <div class="mt-3 text-center">
-            <small>¿No tienes cuenta? <a href="/registro">Regístrate (Próximamente)</a></small>
-        </div>
-    </div>
-</div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" Class="rounded-pill font-weight-bold" OnClick="HacerLogin">
+                INGRESAR
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
 
 @code {
-    // Usamos la misma clase que definiste en tu AuthController
-    private UserDto loginModel = new UserDto();
-    private string mensajeError = "";
+    private LoginDto loginModel = new LoginDto();
 
-    private async Task IniciarSesion()
+    private async Task HacerLogin()
     {
         try
         {
-            // Llamamos a tu nuevo endpoint LOGIN
-            var respuesta = await Http.PostAsJsonAsync("api/Auth/login", loginModel);
+            // ACA ABAJO: Cambiá TU_PUERTO_API por el puerto de tu Swagger (ejemplo: 7123 o 5001)
+            var response = await Http.PostAsJsonAsync("https://localhost:7032/api/Auth/login", loginModel);
 
-            if (respuesta.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode)
             {
-                // La API nos devuelve los datos del STUDENT (incluyendo el ID)
-                var alumno = await respuesta.Content.ReadFromJsonAsync<StudentDto>();
+                // Leemos la respuesta de la API que trae el Token
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-                // Guardamos en memoria
-                UserState.Login(alumno);
+                // GUARDAMOS LA LLAVE EN EL NAVEGADOR (LocalStorage)
+                await LocalStorage.SetItemAsync("authToken", result.Token);
 
-                // Vamos al calendario
-                NavManager.NavigateTo("/");
+                Snackbar.Add("¡Login exitoso!", Severity.Success);
+
+                // Lo mandamos de vuelta a la página principal
+                NavigationManager.NavigateTo("/");
             }
             else
             {
-                mensajeError = "Usuario o contraseña incorrectos.";
+                Snackbar.Add("Correo o contraseña incorrectos.", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            mensajeError = "Error de conexión: " + ex.Message;
+            Snackbar.Add("Error al conectar con el servidor.", Severity.Error);
         }
+    }
+
+    // Clases auxiliares para enviar y recibir los datos
+    public class LoginDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class LoginResponse
+    {
+        public string Token { get; set; } = string.Empty;
     }
 }
