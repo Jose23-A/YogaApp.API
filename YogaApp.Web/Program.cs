@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components.Authorization;
+using YogaApp.Web.Auth;
 using Blazored.LocalStorage;
 using MudBlazor.Services;
 using YogaApp.Web.Components;
@@ -42,3 +44,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+builder.Services.AddAuthorizationCore(); // Habilita el sistema de permisos
+builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

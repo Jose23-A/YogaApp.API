@@ -1,10 +1,12 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
 @using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient Http
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthProvider
 
 <PageTitle>Iniciar Sesión - YogaApp</PageTitle>
 
@@ -42,12 +44,12 @@
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
                 // GUARDAMOS LA LLAVE EN EL NAVEGADOR (LocalStorage)
-                await LocalStorage.SetItemAsync("authToken", result.Token);
+                await LocalStorage.SetItemAsync("authToken", result.token);
 
                 Snackbar.Add("¡Login exitoso!", Severity.Success);
 
                 // Lo mandamos de vuelta a la página principal
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("/", forceLoad: true);
             }
             else
             {
@@ -57,6 +59,7 @@
         catch (Exception ex)
         {
             Snackbar.Add("Error al conectar con el servidor.", Severity.Error);
+            Snackbar.Add($"Error real: {ex.Message}", Severity.Error);
         }
     }
 
@@ -69,6 +72,6 @@
 
     public class LoginResponse
     {
-        public string Token { get; set; } = string.Empty;
+        public string token { get; set; } = string.Empty;
     }
 }

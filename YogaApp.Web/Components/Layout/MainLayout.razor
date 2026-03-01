@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@using YogaApp.Web.Auth
+@inherits LayoutComponentBase
 
 <MudThemeProvider Theme="@TemaYoga"/>
 <MudDialogProvider />
@@ -6,14 +9,27 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Primary">
-        <MudIcon Icon="@Icons.Material.Filled.SelfImprovement" Size="Size.Large" Class="mr-2" />
-        <MudText Typo="Typo.h5" Class="font-weight-bold">YogaApp</MudText>
-        <MudSpacer />
-        <MudButton Href="/" Color="Color.Inherit" Class="mr-2">Inicio</MudButton>
-        <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Inherit" Class="rounded-pill border-solid border-2">
-            Iniciar Sesión
-        </MudButton>
-    </MudAppBar>
+    <MudIcon Icon="@Icons.Material.Filled.SelfImprovement" Size="Size.Large" Class="mr-2" />
+    <MudText Typo="Typo.h5" Class="font-weight-bold">YogaApp</MudText>
+    <MudSpacer /> 
+    <MudButton Href="/" Color="Color.Inherit" Class="mr-2">Inicio</MudButton>
+
+    <AuthorizeView>
+        <Authorized>
+            @* Esto solo se ve si estás LOGUEADO *@
+            <MudText Class="mr-4">Hola, Alumno</MudText>
+            <MudButton OnClick="CerrarSesion" Color="Color.Inherit" Variant="Variant.Outlined" Class="rounded-pill">
+                Cerrar Sesión
+            </MudButton>
+        </Authorized>
+        <NotAuthorized>
+            @* Esto solo se ve si NO estás logueado *@
+            <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Inherit" Class="rounded-pill border-solid border-2">
+                Iniciar Sesión
+            </MudButton>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudAppBar>
 
     <MudMainContent>
         @Body
@@ -27,6 +43,16 @@
 </div>
 
 @code {
+    [Inject] ILocalStorageService LocalStorage { get; set; }
+    [Inject] AuthenticationStateProvider AuthProvider { get; set; }
+    [Inject] NavigationManager Nav { get; set; }
+
+    private async Task CerrarSesion()
+    {
+        await LocalStorage.RemoveItemAsync("authToken"); // Tiramos la llave
+        ((JwtAuthStateProvider)AuthProvider).NotificarCambioEstado(); // Le avisamos al portero
+        Nav.NavigateTo("/"); // Al inicio
+    }
     // Paleta de colores "Lavanda Zen" (Violetas y Lilas)
     MudTheme TemaYoga = new MudTheme()
     {
