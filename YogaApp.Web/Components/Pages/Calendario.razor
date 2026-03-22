@@ -1,20 +1,17 @@
 ﻿@page "/calendario"
 @using YogaApp.Web.DTOs
+@using YogaApp.Web.Services
+@using YogaApp.API.Entities
 @inject HttpClient Http
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
-@inject AuthenticationStateProvider AuthProvider
+@inject ReservaService ReservaService
 @inject ISnackbar Snackbar
-@inject NavigationManager Nav
 
 <div class="container mt-4">
     <h2 class="text-center mb-4">📅 Calendario Semanal</h2>
 
     @if (sesiones == null)
     {
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-        </div>
+        <div class="text-center"><MudProgressCircular Color="Color.Primary" Indeterminate="true" /></div>
     }
     else
     {
@@ -36,26 +33,18 @@
                     {
                         <tr>
                             <td class="align-middle fw-bold bg-light">@hora:00</td>
-
                             @for (int dia = 1; dia <= 6; dia++)
                             {
                                 <td>
                                     @{
-                                        var claseEncontrada = ObtenerClase(dia, hora);
+                                        var clase = ObtenerClase(dia, hora);
                                     }
-
-                                    @if (claseEncontrada != null)
+                                    @if (clase != null)
                                     {
-                                        <div class="card border-0 shadow-sm text-white"
+                                        <div class="card border-0 shadow-sm text-white p-2"
                                              style="background-color: #6f42c1; cursor: pointer;"
-                                             @onclick="() => SeleccionarClase(claseEncontrada)">
-
-                                            <div class="card-body p-2">
-                                                <h6 class="card-title m-0" style="font-size: 0.9rem;">
-                                                    @claseEncontrada.ClassDefinition?.Nombre
-                                                </h6>
-                                                <small>Cupo: @claseEncontrada.CupoMaximo</small>
-                                            </div>
+                                             @onclick="() => SeleccionarClase(clase)">
+                                            <small>@clase.ClassDefinition?.Nombre</small>
                                         </div>
                                     }
                                 </td>
@@ -68,123 +57,76 @@
     }
 </div>
 
+@* SECCIÓN DE CONFIRMACIÓN *@
 @if (claseSeleccionada != null)
 {
-    <div class="alert alert-info mt-3 shadow">
-        Has seleccionado: <strong>@claseSeleccionada.ClassDefinition?.Nombre</strong>
-        a las @claseSeleccionada.FechaHoraInicio.ToShortTimeString() hs.
-        <br />
+    <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="mt-4 mx-4 shadow">
+        <MudText Typo="Typo.h6">Confirmar reserva para: <strong>@claseSeleccionada.ClassDefinition?.Nombre</strong></MudText>
+        <MudText Typo="Typo.body2">Horario: @claseSeleccionada.FechaHoraInicio.ToShortTimeString() hs</MudText>
+        
+        <div class="d-flex gap-2 mt-3">
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="ConfirmarInscripcion" Disabled="@_cargando">
+                @if (_cargando)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
 
-        @if (_estaGuardando)
-        {
-            <button class="btn btn-success mt-2" disabled>
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                Procesando...
-            </button>
-        }
-        else
-        {
-            <button class="btn btn-success mt-2" @onclick="ConfirmarReserva">
-                Confirmar Inscripción
-            </button>
-        }
-        <button class="btn btn-secondary mt-2 ms-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
-    </div>
+                    <text>Confirmar Inscripción</text>
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="() => claseSeleccionada = null">Cancelar</MudButton>
+        </div>
+    </MudAlert>
 }
 
 @code {
     private List<ClassSessionDto>? sesiones;
     private ClassSessionDto? claseSeleccionada;
+    private bool _cargando = false;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Llamamos a tu controlador ClassSessionsController
             sesiones = await Http.GetFromJsonAsync<List<ClassSessionDto>>("api/ClassSessions");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar calendario: {ex.Message}");
+            Snackbar.Add("Error al cargar las clases.", Severity.Error);
         }
     }
 
-    // Lógica para encontrar la clase en la celda correcta
-    private ClassSessionDto? ObtenerClase(int diaSemana, int hora)
+    private async Task ConfirmarInscripcion()
     {
-        if (sesiones == null) return null;
+        if (UserState.AlumnoLogueado == null)
+        {
+            Snackbar.Add("Debes iniciar sesión primero.", Severity.Warning);
+            return;
+        }
 
-        // LINQ: Buscamos una clase que coincida en Día de la semana y Hora
-        return sesiones.FirstOrDefault(c =>
-            (int)c.FechaHoraInicio.DayOfWeek == diaSemana &&
-            c.FechaHoraInicio.Hour == hora);
+        _cargando = true;
+        // Usamos el ID de la clase y el ID del alumno logueado
+        var response = await ReservaService.SolicitarReservaAsync(claseSeleccionada!.Id, UserState.AlumnoLogueado.Id);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("¡Reserva exitosa!", Severity.Success);
+            claseSeleccionada = null;
+            // Recargamos para ver si el cupo cambió
+            sesiones = await Http.GetFromJsonAsync<List<ClassSessionDto>>("api/ClassSessions");
+        }
+        else
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            Snackbar.Add($"Error: {error}", Severity.Error);
+        }
+        _cargando = false;
     }
 
-    private void SeleccionarClase(ClassSessionDto clase)
-    {
-        claseSeleccionada = clase;
-    }
+    private ClassSessionDto? ObtenerClase(int dia, int hora) =>
+        sesiones?.FirstOrDefault(c => (int)c.FechaHoraInicio.DayOfWeek == dia && c.FechaHoraInicio.Hour == hora);
 
-    private bool _estaGuardando = false;
-
-    private async Task ConfirmarReserva()
-    {
-        if (claseSeleccionada == null) return;
-
-        _estaGuardando = true;
-
-        try
-        {
-            // 1. Le preguntamos al Portero quién está usando la app
-            var authState = await AuthProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            // 2. Si no inició sesión, lo mandamos al Login
-            if (!user.Identity.IsAuthenticated)
-            {
-                Snackbar.Add("Debes iniciar sesión para reservar un lugar.", Severity.Warning);
-                Nav.NavigateTo("/login");
-                return;
-            }
-
-            // 3. Sacamos el ID del alumno escondido en el Token JWT
-            var studentIdClaim = user.FindFirst("StudentId");
-            if (studentIdClaim == null)
-            {
-                Snackbar.Add("Error al identificar tu usuario.", Severity.Error);
-                return;
-            }
-            int studentId = int.Parse(studentIdClaim.Value);
-
-            // 4. Preparamos los datos para enviarle a la API
-            var nuevaReserva = new
-            {
-                ClassSessionId = claseSeleccionada.Id,
-                StudentId = studentId
-            };
-
-            // 5. ¡Hacemos la reserva en la Base de Datos!
-            var response = await Http.PostAsJsonAsync("api/Bookings", nuevaReserva);
-
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add("¡Reserva confirmada con éxito!", Severity.Success);
-                claseSeleccionada = null; // Cerramos el cartel azul
-            }
-            else
-            {
-                // Si la API lo rechaza (ej: "Ya estás anotado en esta clase"), leemos el error y lo mostramos
-                var errorMsg = await response.Content.ReadAsStringAsync();
-                Snackbar.Add($"No se pudo reservar: {errorMsg}", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Error al conectar con el servidor.", Severity.Error);
-        }
-        finally
-        {
-            _estaGuardando = false;
-        }
-    }
+    private void SeleccionarClase(ClassSessionDto clase) => claseSeleccionada = clase;
 }

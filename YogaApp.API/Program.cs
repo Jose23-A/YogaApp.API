@@ -50,6 +50,7 @@ builder.Services.AddSwaggerGen(c =>
 
 
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 // Registrar el nuevo servicio
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -69,6 +70,8 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
     };
 });
 builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 var app = builder.Build();
 

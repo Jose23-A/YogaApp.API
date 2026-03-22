@@ -28,6 +28,7 @@ builder.Services.AddHttpClient(); // Esto le enseña a Blazor a hacer peticiones 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<JwtAuthStateProvider>(); // Lo registramos por su nombre
 builder.Services.AddScoped<AuthenticationStateProvider>(p => p.GetRequiredService<JwtAuthStateProvider>());
+builder.Services.AddScoped<YogaApp.Web.Services.ReservaService>();
 
 var app = builder.Build();
 
