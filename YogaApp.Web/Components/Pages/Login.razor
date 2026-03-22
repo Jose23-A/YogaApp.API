@@ -6,7 +6,7 @@
 @inject ILocalStorageService LocalStorage
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
-@inject AuthenticationStateProvider AuthProvider
+@inject YogaApp.Web.Auth.JwtAuthStateProvider AuthProvider
 
 <PageTitle>Iniciar Sesión - YogaApp</PageTitle>
 
@@ -40,16 +40,17 @@
 
             if (response.IsSuccessStatusCode)
             {
-                // Leemos la respuesta de la API que trae el Token
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-                // GUARDAMOS LA LLAVE EN EL NAVEGADOR (LocalStorage)
                 await LocalStorage.SetItemAsync("authToken", result.token);
+
+                // Le avisamos al portero al instante, pasándole la llave
+                AuthProvider.NotificarLogin(result.token);
 
                 Snackbar.Add("¡Login exitoso!", Severity.Success);
 
-                // Lo mandamos de vuelta a la página principal
-                NavigationManager.NavigateTo("/", forceLoad: true);
+                // Navegación fluida (SIN forceLoad)
+                NavigationManager.NavigateTo("/");
             }
             else
             {

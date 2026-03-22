@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using YogaApp.API.Entities; // Asegúrate de tener los usings correctos
+using YogaApp.API.Services;
 
 namespace YogaApp.API.Controllers
 {
@@ -8,71 +7,43 @@ namespace YogaApp.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly YogaDbContext _context;
+        private readonly IAuthService _authService;
 
-        public AuthController(YogaDbContext context)
+        // Le inyectamos el servicio que fabrica las llaves
+        public AuthController(IAuthService authService)
         {
-            _context = context;
+            _authService = authService;
         }
 
-        // --- LOGIN: El método que te faltaba ---
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] UserDto request)
         {
-            // 1. Buscar al Usuario por Email
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-
-            // 2. Verificar si existe y si la contraseña coincide (usando BCrypt)
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            try
             {
-                return Unauthorized("Credenciales incorrectas.");
+                // El servicio valida la clave y genera el Token JWT
+                var tokenJwt = await _authService.LoginAsync(request.Email, request.Password);
+
+                // AHORA SÍ: Devolvemos un JSON que dice {"token": "eyJhbG..."}
+                return Ok(new { token = tokenJwt });
             }
-
-            // 3. MAGIA: Buscar la ficha de ESTUDIANTE asociada a ese email
-            // Necesitamos esto porque las reservas se hacen con el StudentId, no con el UserId.
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.Email == request.Email);
-
-            if (student == null)
+            catch (Exception ex)
             {
-                return BadRequest("El usuario existe, pero no tiene ficha de alumno asignada.");
+                return Unauthorized(ex.Message);
             }
-
-            // 4. Devolvemos los datos del alumno (ID, Nombre, Email) al Frontend
-            return Ok(student);
         }
 
-        // --- REGISTER: Lo ajustamos levemente para que cree el Estudiante también ---
         [HttpPost("register")]
-        public async Task<ActionResult> Register(UserDto request)
+        public async Task<ActionResult> Register([FromBody] UserDto request)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            try
             {
-                return BadRequest("Este correo ya está registrado.");
+                var student = await _authService.RegisterAsync(request.Email, request.Password);
+                return Ok(student);
             }
-
-            // 1. Crear Usuario de Seguridad
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            var user = new User
+            catch (Exception ex)
             {
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                Role = "Alumno"
-            };
-            _context.Users.Add(user);
-
-            // 2. Crear Ficha de Estudiante (Para que pueda reservar después)
-            // Usamos el mismo email para enlazarlos
-            var student = new Student
-            {
-                Nombre = "Nuevo Usuario", // O podrías pedirlo en el DTO
-                Email = request.Email,
-                Telefono = ""
-            };
-            _context.Students.Add(student);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(student); // Devolvemos el estudiante creado
+                return BadRequest(ex.Message);
+            }
         }
     }
 

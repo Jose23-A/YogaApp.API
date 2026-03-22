@@ -25,6 +25,10 @@ builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddHttpClient(); // Esto le enseña a Blazor a hacer peticiones web
 
+builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<JwtAuthStateProvider>(); // Lo registramos por su nombre
+builder.Services.AddScoped<AuthenticationStateProvider>(p => p.GetRequiredService<JwtAuthStateProvider>());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -44,6 +48,3 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-
-builder.Services.AddAuthorizationCore(); // Habilita el sistema de permisos
-builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>();

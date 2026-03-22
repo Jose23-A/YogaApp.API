@@ -43,14 +43,14 @@
 </div>
 
 @code {
+    [Inject] YogaApp.Web.Auth.JwtAuthStateProvider AuthProvider { get; set; }
     [Inject] ILocalStorageService LocalStorage { get; set; }
-    [Inject] AuthenticationStateProvider AuthProvider { get; set; }
     [Inject] NavigationManager Nav { get; set; }
 
     private async Task CerrarSesion()
     {
         await LocalStorage.RemoveItemAsync("authToken"); // Tiramos la llave
-        ((JwtAuthStateProvider)AuthProvider).NotificarCambioEstado(); // Le avisamos al portero
+        AuthProvider.NotificarLogout(); // Avisamos que nos fuimos
         Nav.NavigateTo("/"); // Al inicio
     }
     // Paleta de colores "Lavanda Zen" (Violetas y Lilas)

@@ -1,6 +1,11 @@
 ﻿@page "/calendario"
 @using YogaApp.Web.DTOs
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthProvider
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
 
 <div class="container mt-4">
     <h2 class="text-center mb-4">📅 Calendario Semanal</h2>
@@ -65,12 +70,25 @@
 
 @if (claseSeleccionada != null)
 {
-    <div class="alert alert-info mt-3">
+    <div class="alert alert-info mt-3 shadow">
         Has seleccionado: <strong>@claseSeleccionada.ClassDefinition?.Nombre</strong>
-        a las @claseSeleccionada.FechaHoraInicio.ToShortTimeString()
+        a las @claseSeleccionada.FechaHoraInicio.ToShortTimeString() hs.
         <br />
-        <button class="btn btn-success mt-2">Confirmar Inscripción</button>
-        <button class="btn btn-secondary mt-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
+
+        @if (_estaGuardando)
+        {
+            <button class="btn btn-success mt-2" disabled>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Procesando...
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-success mt-2" @onclick="ConfirmarReserva">
+                Confirmar Inscripción
+            </button>
+        }
+        <button class="btn btn-secondary mt-2 ms-2" @onclick="() => claseSeleccionada = null">Cancelar</button>
     </div>
 }
 
@@ -105,5 +123,68 @@
     private void SeleccionarClase(ClassSessionDto clase)
     {
         claseSeleccionada = clase;
+    }
+
+    private bool _estaGuardando = false;
+
+    private async Task ConfirmarReserva()
+    {
+        if (claseSeleccionada == null) return;
+
+        _estaGuardando = true;
+
+        try
+        {
+            // 1. Le preguntamos al Portero quién está usando la app
+            var authState = await AuthProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            // 2. Si no inició sesión, lo mandamos al Login
+            if (!user.Identity.IsAuthenticated)
+            {
+                Snackbar.Add("Debes iniciar sesión para reservar un lugar.", Severity.Warning);
+                Nav.NavigateTo("/login");
+                return;
+            }
+
+            // 3. Sacamos el ID del alumno escondido en el Token JWT
+            var studentIdClaim = user.FindFirst("StudentId");
+            if (studentIdClaim == null)
+            {
+                Snackbar.Add("Error al identificar tu usuario.", Severity.Error);
+                return;
+            }
+            int studentId = int.Parse(studentIdClaim.Value);
+
+            // 4. Preparamos los datos para enviarle a la API
+            var nuevaReserva = new
+            {
+                ClassSessionId = claseSeleccionada.Id,
+                StudentId = studentId
+            };
+
+            // 5. ¡Hacemos la reserva en la Base de Datos!
+            var response = await Http.PostAsJsonAsync("api/Bookings", nuevaReserva);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("¡Reserva confirmada con éxito!", Severity.Success);
+                claseSeleccionada = null; // Cerramos el cartel azul
+            }
+            else
+            {
+                // Si la API lo rechaza (ej: "Ya estás anotado en esta clase"), leemos el error y lo mostramos
+                var errorMsg = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"No se pudo reservar: {errorMsg}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error al conectar con el servidor.", Severity.Error);
+        }
+        finally
+        {
+            _estaGuardando = false;
+        }
     }
 }
